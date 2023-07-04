@@ -9,6 +9,7 @@ class SideMenu extends StatefulWidget {
 class _SideMenuState extends State<SideMenu> {
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       body: Container(
         width: 340,

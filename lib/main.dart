@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timeago/timeago.dart';
 import 'package:twitter_clone/pages/firstpage.dart';
 import 'package:twitter_clone/pages/layout%20page.dart';
 import 'package:twitter_clone/pages/login%20page.dart';
@@ -8,21 +10,45 @@ import 'package:twitter_clone/pages/sign%20up%20page.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:twitter_clone/pages/splash%20screen.dart';
 import 'package:twitter_clone/pages/user_profile.dart';
 
 import 'firebase_options.dart';
 
+import 'package:timeago/timeago.dart' as timeago;
+class MyCustomMessages implements LookupMessages {
 
-
+  @override String prefixAgo() => '';
+  @override String prefixFromNow() => '';
+  @override String suffixAgo() => '';
+  @override String suffixFromNow() => '';
+  @override String lessThanOneMinute(int seconds) => 'just now';
+  @override String aboutAMinute(int minutes) => '${minutes}m';
+  @override String minutes(int minutes) => '${minutes}m';
+  @override String aboutAnHour(int minutes) => '${minutes}m';
+  @override String hours(int hours) => '${hours}h';
+  @override String aDay(int hours) => '${hours}h';
+  @override String days(int days) => '${days}d';
+  
+  @override String aboutAMonth(int days) => '${days}d';
+  @override String months(int months) => '${months}mo';
+  @override String aboutAYear(int year) => '${year}y';
+  @override String years(int years) => '${years}y';
+  @override String wordSeparator() => ' ';
+}
 Future <void> main() async {
    WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
      options: DefaultFirebaseOptions.currentPlatform,
   );
+  //SystemChrome.setEnabledSystemUIMode(overlays: );
    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-    statusBarColor: Color(0xff303234),));
-  runApp( MyApp());
+    statusBarColor: Colors.transparent,));
+  runApp( ProviderScope(child: MyApp()));
+   timeago.setLocaleMessages('en', MyCustomMessages( ));
+
+   
 }
 
 class MyApp extends StatelessWidget {
@@ -38,9 +64,15 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       
       theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black, // Set the default background color for Scaffold
+        appBarTheme: AppBarTheme(
+          color: Colors.grey[900], // Set the default background color for AppBar
+        ),
          textTheme: TextTheme(
-          
-      bodyLarge: GoogleFonts.abel(),
+        
+      bodyLarge: GoogleFonts.roboto(),
+      bodySmall: GoogleFonts.roboto(),
+      bodyMedium: GoogleFonts.roboto(),
       ),
       )
     );

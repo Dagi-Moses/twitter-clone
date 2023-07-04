@@ -10,7 +10,7 @@ class FollowBackWidget extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left:46.0),
           child: Row(
-            //mainAxisAlignment: MainAxisAlignment.start,
+           
              crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(
@@ -56,7 +56,7 @@ class FollowBackWidget extends StatelessWidget {
                           children: [
                             CircleAvatar(backgroundColor: Colors.purpleAccent,),
                           ElevatedButton(
-
+    
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,

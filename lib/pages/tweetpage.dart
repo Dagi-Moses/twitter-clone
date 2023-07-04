@@ -3,28 +3,31 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:twitter_clone/methods/firebase%20firestore%20methods.dart';
 import 'package:twitter_clone/models/utils.dart';
+import 'package:twitter_clone/pages/layout%20page.dart';
+import 'package:twitter_clone/pages/select%20photo.dart';
 import 'package:twitter_clone/widgets.dart/drawer%20widget.dart';
 
 import '../methods/abstract methods.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
-class TweetPage extends StatefulWidget {
+class TweetPage extends ConsumerStatefulWidget {
   const TweetPage({super.key});
 
   @override
-  State<TweetPage> createState() => _TweetPageState();
+  ConsumerState<TweetPage> createState() => _TweetPageState();
 }
 
-class _TweetPageState extends State<TweetPage> {
+class _TweetPageState extends ConsumerState<TweetPage> {
   bool isLoading = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   File ? image ;
   void onPickImages() async {
     image = await pickImage();
-    setState(() {});
+    
   }
   double sizedBoxHeight = 40;
   int maxLines = 1;
@@ -59,6 +62,9 @@ class _TweetPageState extends State<TweetPage> {
  
   @override
   Widget build(BuildContext context) {
+    final _username = ref.watch(usernameProvider);
+    final _name = ref.watch(nameProvider);
+    final _pic = ref.watch(profileImageUrlProvider);
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -80,7 +86,7 @@ class _TweetPageState extends State<TweetPage> {
                 setState(() {
                   isLoading = true;
                 });
-                await uploadPost(username: username, tweet: _controller.text, file: image!);
+                await uploadPost(username: _username ?? _name!, name: _name!, tweet: _controller.text, file: image, profilePhoto: _pic!);
                 setState(() {
                   isLoading = false;
                 });
@@ -91,7 +97,7 @@ class _TweetPageState extends State<TweetPage> {
                 child: SizedBox(
                   height: 20,
                   width: 20,
-                  child: CircularProgressIndicator(color: Colors.blue,)),
+                  child: CircularProgressIndicator(color: Colors.white,)),
               ): Text('Tweet'),
               style: ElevatedButton.styleFrom(
                 backgroundColor:  image !=null ||_controller.text.isNotEmpty ? Colors.blue : Colors.grey,
@@ -113,7 +119,8 @@ class _TweetPageState extends State<TweetPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   CircleAvatar(
-                    backgroundColor: Colors.pink,
+                    backgroundImage:NetworkImage(_pic??'https://picsum.photos/200/300'),
+                      
                   ),
                   ElevatedButton.icon(
                     onPressed: () {},

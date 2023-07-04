@@ -1,27 +1,37 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:page_transition/page_transition.dart';
 
 import '../pages/user_profile.dart';
 Size ?screenSize;
  bool sch = true;
-class DrawerWidget extends StatelessWidget {
-  
-  const DrawerWidget({
-    super.key,
+class DrawerWidget extends ConsumerStatefulWidget {
+  String ? profileImage;
+   DrawerWidget({
+    super.key,required this.profileImage
   });
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _DrawerWidgetState();
+}
+
+class _DrawerWidgetState extends ConsumerState<DrawerWidget> {
+final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
    screenSize = MediaQuery.of(context).size;
-  
+    int followers  = ref.watch(followersProvider);
+    int  following  = ref.watch(followingProvider);
     return SafeArea(
       child: ListView(
         
         padding: EdgeInsets.zero,
         children: [
           ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.blue,
+            leading:  CircleAvatar(
+              backgroundImage: NetworkImage( widget.profileImage?? 'https://picsum.photos/200/300',),
             ),
             trailing: IconButton(
               onPressed: () {},
@@ -51,20 +61,20 @@ class DrawerWidget extends StatelessWidget {
                   height: 5,
                 ),
                 RichText(
-                    text: const TextSpan(children: [
+                    text:TextSpan(children: [
                   TextSpan(
-                    text: '4,037',
+                    text: following.toString(),
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold),
                   ),
                   TextSpan(
-                    text: ' Following',
+                    text: ' Following  ',
                     style: TextStyle(
                         fontSize: 15, color: Colors.grey),
                   ),
                   TextSpan(
-                    text: '   3,667',
+                    text: followers.toString(),
                     style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold),
@@ -91,52 +101,62 @@ class DrawerWidget extends StatelessWidget {
               ),
               onTap: () {
                 Navigator.push(context,
-        PageTransition(type: PageTransitionType.rightToLeft, child: UserProfile()));
+        PageTransition(type: PageTransitionType.rightToLeft, child: UserProfile(uid: _auth.currentUser!.uid, canEdit: true,)));
               }),
           ListTile(
-              leading: const Icon(
+              leading:  Icon(
                 Icons.message_outlined,
+                color: Colors.grey[600],
                 size: 25,
               ),
-              title: const Text(
+              title:  Text(
                 'Topics',
                 style: TextStyle(
+                  color: Colors.grey[600],
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
               onTap: () {}),
           ListTile(
-              leading: const Icon(
+              leading:  Icon(
+                color: Colors.grey[600],
                 Icons.bookmark_border_outlined,
                 size: 25,
               ),
-              title: const Text(
+              title:  Text(
                 'BookMarks',
                 style: TextStyle(
+                  color: Colors.grey[600],
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
               onTap: () {}),
           ListTile(
-              leading: const Icon(
+              leading:  Icon(
+                color: Colors.grey[600],
                 Icons.list_alt,
                 size: 25,
               ),
-              title: const Text(
+              title:  Text(
+                
                 'Lists',
                 style: TextStyle(
+                  color: Colors.grey[600],
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
               onTap: () {}),
           ListTile(
-              leading: const Icon(
+              leading: Icon(
+                color: Colors.grey[600],
                 Icons.person_add_alt_1_outlined,
                 size: 25,
               ),
-              title: const Text(
+              title: Text(
+                
                 'Twitter Circle',
                 style: TextStyle(
+                  color: Colors.grey[600],
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
@@ -149,30 +169,47 @@ class DrawerWidget extends StatelessWidget {
          ),
            ListTile(
               
-              leading: const Text(
+              leading:  Text(
                 'Professional Tools',
                 style: TextStyle(
+                  color: Colors.grey[600],
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
-              trailing:  const Icon(
+              trailing:   Icon(
                 Icons.arrow_drop_down_outlined,
+                color: Colors.grey[600],
                 size: 25,
               ),
               onTap: () {}),
            ListTile(
               
-              leading: const Text(
+              leading:  Text(
                 'Settings and Support',
                 style: TextStyle(
+                  color: Colors.grey[600],
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
               ),
-              trailing:  const Icon(
+              trailing:   Icon(
                 Icons.arrow_drop_down_outlined,
+                color: Colors.grey[600],
                 size: 25,
               ),
               onTap: () {}),
+           ListTile(
+              
+              leading:  Text(
+                'Logout',
+                style: TextStyle(
+                  color: Colors.red,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+           
+              onTap: () {
+                FirebaseAuth.instance.signOut();
+              }),
            Padding(
              padding: const EdgeInsets.only(top:100, left: 20),
              child: Align(
