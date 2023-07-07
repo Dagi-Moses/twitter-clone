@@ -34,13 +34,14 @@ final bioProvider = StateProvider<String?>((ref) => null);
 final locationProvider = StateProvider<String?>((ref) => null);
 final birthdateProvider = StateProvider<String?>((ref) => null);
 final isDrawerOpenProvider = StateProvider<bool>((ref) => false);
+
 final sizeProvider = StateProvider<Size>((ref) => screenSize!);
 Size? screenSize;
-
+StateProvider<AnimationController?>? animationController;
 class _LayoutState extends ConsumerState<Layout>
     with SingleTickerProviderStateMixin {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  AnimationController? _animationController;
+   
   final PageController _pageController = PageController();
   bool? isDrawerOpen;
 
@@ -49,15 +50,15 @@ class _LayoutState extends ConsumerState<Layout>
   void initState() {
     super.initState();
 
-    _animationController = AnimationController(
+    animationController = StateProvider<AnimationController>((ref) =>   AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
-    );
+    ));
   }
 
   @override
   void dispose() {
-    _animationController!.dispose();
+   // _animationController!.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -81,6 +82,7 @@ class _LayoutState extends ConsumerState<Layout>
   double _mainPageLeftPosition = 0;
   @override
   Widget build(BuildContext context) {
+     final _animationController = ref.read( animationController!);
     final scrollController = ref.read(scrollControllerProvider);
     screenSize = MediaQuery.of(context).size;
     String? profileImage = ref.watch(profileImageUrlProvider);
@@ -135,7 +137,7 @@ class _LayoutState extends ConsumerState<Layout>
                 //left:_mainPageLeftPosition
                 animation: _animationController!,
                 builder: (context, child) {
-                  double slide = 1.0 - _animationController!.value;
+                  double slide = 1.0 - _animationController.value;
 
                   return Stack(
                     children: [
@@ -146,7 +148,7 @@ class _LayoutState extends ConsumerState<Layout>
                               _maxSlideWidth /
                                   MediaQuery.of(context).size.width,
                               0.0),
-                        ).animate(_animationController!),
+                        ).animate(_animationController),
                         child: Scaffold(
                           backgroundColor: Colors.black,
                           body: PageView(
@@ -260,11 +262,11 @@ class _LayoutState extends ConsumerState<Layout>
   void _handleDragUpdate(DragUpdateDetails details) {
     try {
       if (isDrawerOpen! && details.delta.dx < 0) {
-        _animationController!.value = details.primaryDelta! / 500;
+       ref.read(animationController!.notifier).state!.value = details.primaryDelta! / 500;
       } else if (!isDrawerOpen! &&
           details.delta.dx > 0 &&
           details.primaryDelta! > 0) {
-        _animationController!.value = details.primaryDelta! / 500;
+        ref.read(animationController!.notifier).state!.value = details.primaryDelta! / 500;
       }
     } catch (e) {
       print(e.toString());
@@ -272,7 +274,7 @@ class _LayoutState extends ConsumerState<Layout>
   }
 
   void _handleDragEnd(DragEndDetails details) {
-    if (_animationController!.value > 0) {
+    if (ref.read(animationController!.notifier).state!.value > 0) {
       _openDrawer();
     } else {
       _closeDrawer();
@@ -280,13 +282,13 @@ class _LayoutState extends ConsumerState<Layout>
   }
 
   void _openDrawer() {
-    _animationController!.forward();
+    ref.read(animationController!.notifier).state!.forward();
     // setState(() {isDrawerOpen = true; });
     ref.read(isDrawerOpenProvider.notifier).state = true;
   }
 
   void _closeDrawer() {
-    _animationController!.reverse();
+   ref.read(animationController!.notifier).state!.reverse();
     // setState(() {isDrawerOpen = false; });
     ref.read(isDrawerOpenProvider.notifier).state = false;
   }

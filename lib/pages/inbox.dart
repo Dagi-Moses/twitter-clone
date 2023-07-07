@@ -113,7 +113,9 @@ class _InboxPageState extends ConsumerState<InboxPage> {
                           .snapshots(),
                   builder: (context, snapshot) {
                     final users = snapshot.data!.docs;
-                    return Column(
+                      
+                          
+                  return Column(
                       
                         // padding: EdgeInsets.only(
                         //     top: MediaQuery.of(context).padding.bottom),

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter/src/widgets/placeholder.dart';
@@ -5,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:twitter_clone/pages/select%20photo.dart';
 import 'package:twitter_clone/widgets.dart/follow%20back%20widget.dart';
 import'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets.dart/chatwidget.dart';
 import 'layout page.dart';
 
@@ -19,6 +20,7 @@ class NotificationsPage extends ConsumerStatefulWidget {
 class _NotificationsPageState extends ConsumerState<NotificationsPage>
     with SingleTickerProviderStateMixin {
   ScrollController _scrollController = ScrollController();
+  FirebaseAuth _auth = FirebaseAuth.instance; 
   
   double _appBarHeight = kToolbarHeight;
 
@@ -75,20 +77,37 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage>
           ),
           SliverToBoxAdapter(
             child: StreamBuilder(
-
+               stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(_auth.currentUser!.uid)
+                   // .orderBy('time', descending: true)
+                    .snapshots(),
               builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) { 
+                 
+                   if (!snapshot.hasData|| snapshot.data!.data()!['followers'] == null ) {
+      return Container(
+        height: screenSize!.height-150,
+                  width: screenSize!.width, 
+        child: Center(child: Text('your notifications will appear here')));
+    }else{ 
+       List<String> uids = [];
+      if (snapshot.data!.data()!.containsKey('followers')) {
+        uids = List<String>.from(snapshot.data!.data()!['followers']);
+      }
               return Expanded(
                 child: Container(
                   height: screenSize!.height,
                   width: screenSize!.width, 
                   child: ListView.builder(
+                    
                      padding:  EdgeInsets.only(top: MediaQuery.of(context).padding.bottom),
-                      itemCount: 20,
+                      itemCount: uids.length,
                       itemBuilder: (context, index) {
-                        return FollowBackWidget();
+                        String ?uid = uids[index];
+                        return FollowBackWidget(uid: uid,);
                       }),
                 ),
-              ); },
+              );} },
             ),
           )
         ],

@@ -19,18 +19,19 @@ class HomePage extends ConsumerStatefulWidget implements PreferredSizeWidget {
         kToolbarHeight,
       );
 }
+
 final scrollControllerProvider = Provider<ScrollController>((ref) {
   return ScrollController();
 });
-final followingUserIds  = StateProvider<List<String> ?>((ref) {
- return null;
+final followingUserIds = StateProvider<List<String>?>((ref) {
+  return null;
 });
 
 class _HomePageState extends ConsumerState<HomePage>
     with SingleTickerProviderStateMixin {
-     String _uid = FirebaseAuth.instance.currentUser!.uid;
+  String _uid = FirebaseAuth.instance.currentUser!.uid;
   Size? screenSize;
-   ScrollController ?_scrollController;
+  ScrollController? _scrollController;
   TabController? _tabController;
   double _appBarHeight = kToolbarHeight;
   var userData;
@@ -39,7 +40,7 @@ class _HomePageState extends ConsumerState<HomePage>
   @override
   void initState() {
     super.initState();
-getFollowingStream;
+    getFollowingStream;
     _tabController = TabController(length: 2, vsync: this);
     _scrollController?.addListener(() {
       double newHeight = kToolbarHeight - _scrollController!.offset;
@@ -49,20 +50,16 @@ getFollowingStream;
     });
   }
 
-Stream get getFollowingStream{
- final snap = FirebaseFirestore.instance.collection('users').doc(_uid).snapshots() ;
- snap.listen((snapshot) { 
-  print(followingUserIds);
-  ref.read(followingUserIds.notifier).state =  List<String>.from(snapshot.data()!['following']);
- });
-return snap;
-}
-
-
-
-
-
-
+  Stream get getFollowingStream {
+    final snap =
+        FirebaseFirestore.instance.collection('users').doc(_uid).snapshots();
+    snap.listen((snapshot) {
+      print(followingUserIds);
+      ref.read(followingUserIds.notifier).state =
+          List<String>.from(snapshot.data()!['following']);
+    });
+    return snap;
+  }
 
   @override
   void dispose() {
@@ -86,122 +83,155 @@ return snap;
         extendBodyBehindAppBar: true,
         backgroundColor: isDrawerOpen ? Colors.grey[900] : Colors.black,
         body: NestedScrollView(
-          controller: _scrollController,
-          headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              backgroundColor: Colors.grey[900],
-              expandedHeight: 100,
-              floating: true,
-              snap: true,
-              pinned: false,
-              centerTitle: true,
-              toolbarHeight: _appBarHeight,
-              leading: Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: CircleAvatar(
-                  radius: 10,
-                  backgroundImage: NetworkImage(
-                    profileImage ?? 'https://picsum.photos/200/300',
+            controller: _scrollController,
+            headerSliverBuilder: (context, innerBoxIsScrolled) {
+              return [
+                SliverAppBar(
+                  backgroundColor: Colors.grey[900],
+                  expandedHeight: 100,
+                  floating: true,
+                  snap: true,
+                  pinned: false,
+                  centerTitle: true,
+                  toolbarHeight: _appBarHeight,
+                  leading: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: CircleAvatar(
+                      radius: 10,
+                      backgroundImage: NetworkImage(
+                        profileImage ?? 'https://picsum.photos/200/300',
+                      ),
+                    ),
+                  ),
+                  title: Icon(
+                    FontAwesomeIcons.twitter,
+                    color: Colors.blue,
+                    size: 29,
+                  ),
+                  bottom: TabBar(
+                    indicatorColor: Colors.blue,
+                    indicatorSize: TabBarIndicatorSize.label,
+                    controller: _tabController,
+                    tabs: [
+                      Tab(
+                        text: 'For You',
+                      ),
+                      Tab(
+                        text: 'Following',
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              title: Icon(
-                FontAwesomeIcons.twitter,
-                color: Colors.blue,
-                size: 29,
-              ),
-              bottom: TabBar(
-                indicatorColor: Colors.blue,
-                indicatorSize: TabBarIndicatorSize.label,
-                controller: _tabController,
-                tabs: [
-                  Tab(
-                    text: 'For You',
-                  ),
-                  Tab(
-                    text: 'Following',
-                  ),
-                ],
-              ),
-            ),
-            ];},
-          body:  TabBarView(
-
-            controller: _tabController, children: [
-            StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection('posts')
-                    .orderBy('time', descending: true)
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  //         if (snapshot.connectionState == ConnectionState.waiting) {
-                  // return const Center(
-                  //   child: CircularProgressIndicator(),
-                  // );
-                  //  }
-                  if (!snapshot.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
+              ];
+            },
+            body: GestureDetector(
+              onHorizontalDragUpdate: (details) {
+                if (_tabController!.index == 0 &&
+                    !isDrawerOpen &&
+                    details.delta.dx > 0) {
+                  ref.read(animationController!.notifier).state!.value =
+                      details.delta.dx.abs() / 250;
+                } else {
+                  int slideDirection = details.delta.dx > 0 ? -1 : 1;
+                  int newSelectedIndex = _tabController!.index + slideDirection;
+                  newSelectedIndex =
+                      newSelectedIndex.clamp(0, _tabController!.length - 1);
+                  _tabController!.animateTo(newSelectedIndex);
+                }
+              },
+              onHorizontalDragEnd: (details) {
+                if (_tabController!.index == 0 &&
+                    !isDrawerOpen &&
+                    details.primaryVelocity! > 0) {
+                  ref.read(animationController!.notifier).state!.forward();
+                  ref.read(isDrawerOpenProvider.notifier).state = true;
+                } else {
+                  if (ref.read(animationController!.notifier).state!.value >
+                      0.5) {
+                    ref.read(animationController!.notifier).state!.forward();
+                    ref.read(isDrawerOpenProvider.notifier).state = true;
+                  } else {
+                    ref.read(animationController!.notifier).state!.reverse();
+                    ref.read(isDrawerOpenProvider.notifier).state = false;
                   }
-                  return ListView(
-                    padding:  EdgeInsets.only(top: MediaQuery.of(context).padding.bottom),
-                      children: 
-                      List.generate (snapshot.data!.docs.length, (index) {
-                        DocumentSnapshot document =
-                            snapshot.data!.docs[index];
-          
-                  
-          
-                        return ChatWidget(
-                          snap: document, index: index, isAllcommentsPage: false,
-                        );
-                      })
-                      );
-                }),
-            
-             StreamBuilder(
-                  stream: FirebaseFirestore.instance
-                      .collection('posts')
-                      .where('uid',whereIn:followId )
-                      //.orderBy('time', descending: true)
-                      .snapshots()
-                      ,
-                  builder: (BuildContext context,
-                      AsyncSnapshot<QuerySnapshot> snapshot) {
-                    //         if (snapshot.connectionState == ConnectionState.waiting) {
-                    // return const Center(
-                    //   child: CircularProgressIndicator(),
-                    // );
-                    //  }
-                    if (!snapshot.hasData) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    return ListView(
-                      padding:  EdgeInsets.only(top: MediaQuery.of(context).padding.bottom),
-                        children: 
-                        List.generate (snapshot.data!.docs.length, (index) {
-                          DocumentSnapshot document =
-                              snapshot.data!.docs[index];
-                      
-                    
-                      
-                          return ChatWidget(
-                            snap: document, index: index, isAllcommentsPage: false,
+                }
+              },
+              child: TabBarView(
+                  physics: NeverScrollableScrollPhysics(),
+                  controller: _tabController,
+                  children: [
+                    StreamBuilder(
+                        stream: FirebaseFirestore.instance
+                            .collection('posts')
+                            .orderBy('time', descending: true)
+                            .snapshots(),
+                        builder: (BuildContext context,
+                            AsyncSnapshot<QuerySnapshot> snapshot) {
+                          //         if (snapshot.connectionState == ConnectionState.waiting) {
+                          // return const Center(
+                          //   child: CircularProgressIndicator(),
+                          // );
+                          //  }
+                          if (!snapshot.hasData) {
+                            return Center(
+                              child: Text('No Tweets'),
+                            );
+                          }
+                          return ListView(
+                              padding: EdgeInsets.only(
+                                  top: MediaQuery.of(context).padding.bottom),
+                              children: List.generate(
+                                  snapshot.data!.docs.length, (index) {
+                                DocumentSnapshot document =
+                                    snapshot.data!.docs[index];
+
+                                return ChatWidget(
+                                  snap: document,
+                                  index: index,
+                                  isAllcommentsPage: false,
+                                );
+                              }));
+                        }),
+                    StreamBuilder(
+                      stream: followId == null
+                          ? FirebaseFirestore.instance
+                              .collection('posts')
+                              .where('uid', whereIn: followId)
+                              //.orderBy('time', descending: true)
+                              .snapshots()
+                          : null,
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
                           );
-                        }));
-                 
-               },
-              
-            ),
-            
-          ])
-          
-        ),
+                        } else if (!snapshot.hasData || followId == null) {
+                          return Center(
+                            child: Text(
+                                'Tweets of users you follow will appear here '),
+                          );
+                        } else {
+                          return ListView(
+                              padding: EdgeInsets.only(
+                                  top: MediaQuery.of(context).padding.bottom),
+                              children: List.generate(
+                                  snapshot.data!.docs.length, (index) {
+                                DocumentSnapshot document =
+                                    snapshot.data!.docs[index];
+
+                                return ChatWidget(
+                                  snap: document,
+                                  index: index,
+                                  isAllcommentsPage: false,
+                                );
+                              }));
+                        }
+                      },
+                    ),
+                  ]),
+            )),
       ),
     );
   }
